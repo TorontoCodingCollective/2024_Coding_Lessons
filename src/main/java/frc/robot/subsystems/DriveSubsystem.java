@@ -82,7 +82,7 @@ public class DriveSubsystem extends SubsystemBase {
         double yaw = navXGyro.getYaw();
 
         // Add the offset to the heading
-        yaw += headingOffset;
+        yaw = (yaw + headingOffset) % 360;
 
         if (yaw < 0) {
             yaw += 360;
