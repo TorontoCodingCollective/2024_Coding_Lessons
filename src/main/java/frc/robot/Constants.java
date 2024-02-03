@@ -11,6 +11,11 @@ package frc.robot;
 public final class Constants {
 
     public static class OperatorInputConstants {
+
+        public enum AutoPattern {
+            DO_NOTHING, DRIVE_FORWARD_ONE_SECOND
+        };
+
         public static final int DRIVER_CONTROLLER_PORT = 0;
     }
 

@@ -23,7 +23,7 @@ public class RobotContainer {
 
     // Declare all subsystems.
     private final LightsSubsystem lightsSubsystem = new LightsSubsystem();
-    private final DriveSubsystem  driveSubsystem  = new DriveSubsystem();
+    private final DriveSubsystem  driveSubsystem  = new DriveSubsystem(lightsSubsystem);
 
 
     /**
@@ -36,7 +36,7 @@ public class RobotContainer {
             new DefaultDriveCommand(operatorInput, driveSubsystem));
 
         // Configure the operator input button bindings.
-        operatorInput.configureBindings(driveSubsystem);
+        operatorInput.configureBindings(driveSubsystem, lightsSubsystem);
     }
 
     /**
@@ -47,10 +47,6 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
 
         // Pass all subsystems to the auto constructor.
-        return new AutoCommand(driveSubsystem);
-    }
-
-    public void robotEnabledInit() {
-        lightsSubsystem.robotEnabled();
+        return new AutoCommand(operatorInput.getSelectedAuto(), driveSubsystem);
     }
 }

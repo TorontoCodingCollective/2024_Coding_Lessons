@@ -56,7 +56,7 @@ public class CancelCommand extends LoggingCommand {
         }
 
         // Only end once the cancel button is released after .5 seconds has elapsed
-        if (!operatorInput.isCancel()) {
+        if (!operatorInput.getCancel()) {
             setFinishReason("Cancel button released");
             return true;
         }

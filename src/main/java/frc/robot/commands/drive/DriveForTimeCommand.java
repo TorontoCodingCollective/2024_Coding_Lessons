@@ -4,13 +4,13 @@
 
 package frc.robot.commands.drive;
 
-import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.commands.LoggingCommand;
 import frc.robot.subsystems.DriveSubsystem;
 
 /**
  * An example command that uses the drive subsystem.
  */
-public class DriveForTimeCommand extends Command {
+public class DriveForTimeCommand extends LoggingCommand {
 
     private final double         timeoutSeconds;
     private final double         speed;
@@ -39,6 +39,8 @@ public class DriveForTimeCommand extends Command {
     @Override
     public void initialize() {
 
+        logCommandStart("timeout " + timeoutSeconds + "sec, speed " + speed);
+
         startTimeMs = System.currentTimeMillis();
         driveSubsystem.setDriveSpeed(speed, speed);
     }
@@ -46,12 +48,14 @@ public class DriveForTimeCommand extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        // Nothing to do here except wait for the end
+        driveSubsystem.setDriveSpeed(speed, speed);
     }
 
     // Called once the command ends or is interrupted.
     @Override
     public void end(boolean interrupted) {
+
+        logCommandEnd(interrupted);
 
         // When the command finishes, do nothing
         // NOTE: control will return to the driver
@@ -64,6 +68,7 @@ public class DriveForTimeCommand extends Command {
         double runTimeSeconds = (System.currentTimeMillis() - startTimeMs) / 1000.0d;
 
         if (runTimeSeconds >= timeoutSeconds) {
+            setFinishReason("Command timed out after " + runTimeSeconds + "sec");
             return true;
         }
 

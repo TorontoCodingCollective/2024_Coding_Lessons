@@ -13,9 +13,12 @@ public class LightsSubsystem extends SubsystemBase {
 
     private final AddressableLED       ledStrip;
     private final AddressableLEDBuffer ledBuffer;
-    private final AddressableLEDBuffer invertedLEDBuffer;
+    private final AddressableLEDBuffer RSL_ON;
+    private final AddressableLEDBuffer RSL_OFF;
+
 
     private static final Color         TEST_COLOR    = new Color(30, 30, 30); // RGB
+    private static final Color         RSL_COLOR     = new Color(255, 30, 0); // RGB
 
     // RSL tracker
     private boolean                    previousRSLOn = false;
@@ -23,9 +26,8 @@ public class LightsSubsystem extends SubsystemBase {
 
     public LightsSubsystem() {
 
-        ledStrip          = new AddressableLED(LightsConstants.LED_PWM_PORT);
-        ledBuffer         = new AddressableLEDBuffer(LightsConstants.LED_STRING_LENGTH);
-        invertedLEDBuffer = new AddressableLEDBuffer(LightsConstants.LED_STRING_LENGTH);
+        ledStrip  = new AddressableLED(LightsConstants.LED_PWM_PORT);
+        ledBuffer = new AddressableLEDBuffer(LightsConstants.LED_STRING_LENGTH);
 
         ledStrip.setLength(ledBuffer.getLength());
         ledStrip.setData(ledBuffer);
@@ -34,11 +36,72 @@ public class LightsSubsystem extends SubsystemBase {
 
         // Run the test pattern
         setColor(TEST_COLOR);
+
+        // Set up the RSL buffers
+        RSL_ON  = new AddressableLEDBuffer(LightsConstants.LED_STRING_LENGTH);
+        RSL_OFF = new AddressableLEDBuffer(LightsConstants.LED_STRING_LENGTH);
+
+        for (int i = 0; i < LightsConstants.LED_STRING_LENGTH; i++) {
+            RSL_ON.setLED(i, RSL_COLOR);
+            RSL_OFF.setLED(i, Color.kBlack);
+        }
     }
 
-    public void robotEnabled() {
+    public void setRobotEnabled() {
         // Flash the inverted color buffer 5 times when starting up.
         rslSyncCount = 4;
+    }
+
+    public void setDriveMotorSpeeds(double leftSpeed, double rightSpeed) {
+
+        // If the robot is not enabled, then set the pattern to the test pattern
+
+        if (!RobotController.isSysActive()) {
+            for (int i = 0; i < 10; i++) {
+                setPixel(i, TEST_COLOR);
+            }
+        }
+        else {
+
+            // Set the color of the first 5 leds to the left speed
+            // green is positive, red is negative
+            // intensity is based on speed.
+            Color leftColor = null;
+
+            if (leftSpeed > 0) {
+                leftColor = new Color(0, leftSpeed, 0);
+            }
+            else {
+                leftColor = new Color(leftSpeed, 0, 0);
+            }
+            for (int i = 0; i < 5; i++) {
+                setPixel(i, leftColor);
+            }
+
+            Color rightColor = null;
+
+            if (leftSpeed > 0) {
+                rightColor = new Color(0, rightSpeed, 0);
+            }
+            else {
+                rightColor = new Color(rightSpeed, 0, 0);
+            }
+            for (int i = 5; i < 10; i++) {
+                setPixel(i, rightColor);
+            }
+        }
+    }
+
+    @Override
+    public void periodic() {
+
+        // Update the buffer every loop
+        if (rslSyncCount < 0) {
+            ledStrip.setData(ledBuffer);
+        }
+        else {
+            flashRSL();
+        }
     }
 
     private void setColor(Color color) {
@@ -52,36 +115,25 @@ public class LightsSubsystem extends SubsystemBase {
         if (pixel >= 0 && pixel < ledBuffer.getLength()) {
 
             ledBuffer.setLED(pixel, color);
-
-            // Set up the inverted color array for RSL sync.
-            Color invertedColor = new Color(1.0 - color.red, 1.0 - color.green, 1.0 - color.blue);
-            invertedLEDBuffer.setLED(pixel, invertedColor);
         }
     }
 
-    @Override
-    public void periodic() {
+    private void flashRSL() {
 
-        // Update the buffer every loop
-        if (rslSyncCount < 0) {
-            ledStrip.setData(ledBuffer);
+        // Sync with the first set of RSL flashes when the robot is first enabled
+        boolean rslOn = RobotController.getRSLState();
+
+        if (!rslOn && previousRSLOn) {
+            rslSyncCount--;
+        }
+        previousRSLOn = rslOn;
+
+        if (rslOn) {
+            ledStrip.setData(RSL_ON);
         }
         else {
-
-            // Sync with the first set of RSL flashes when the robot is first enabled
-            boolean rslOn = RobotController.getRSLState();
-
-            if (!rslOn && previousRSLOn) {
-                rslSyncCount--;
-            }
-            previousRSLOn = rslOn;
-
-            if (rslOn) {
-                ledStrip.setData(ledBuffer);
-            }
-            else {
-                ledStrip.setData(invertedLEDBuffer);
-            }
+            ledStrip.setData(RSL_OFF);
         }
     }
+
 }

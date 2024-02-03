@@ -4,14 +4,14 @@
 
 package frc.robot.commands.drive;
 
-import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.commands.LoggingCommand;
 import frc.robot.operatorInput.OperatorInput;
 import frc.robot.subsystems.DriveSubsystem;
 
 /**
  * An example command that uses the drive subsystem.
  */
-public class DefaultDriveCommand extends Command {
+public class DefaultDriveCommand extends LoggingCommand {
 
     private final OperatorInput  operatorInput;
     private final DriveSubsystem driveSubsystem;
@@ -35,6 +35,7 @@ public class DefaultDriveCommand extends Command {
     // Called when the command is initially scheduled.
     @Override
     public void initialize() {
+        logCommandStart();
     }
 
     // Called every time the scheduler runs while the command is scheduled.
@@ -50,6 +51,7 @@ public class DefaultDriveCommand extends Command {
     // Called once the command ends or is interrupted.
     @Override
     public void end(boolean interrupted) {
+        logCommandEnd(interrupted);
     }
 
     // Returns true when the command should end.
